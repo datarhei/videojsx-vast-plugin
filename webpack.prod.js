@@ -26,7 +26,7 @@ module.exports = common.map((c) =>
                             comments: false,
                         },
                         compress: {
-                            drop_console: true,
+                            drop_console: false,
                         },
                     },
                     extractComments: false,

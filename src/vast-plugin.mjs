@@ -55,11 +55,13 @@ export class VastPlugin extends Plugin {
             player.ads({ debug: options.debug, liveCuePoints: false });
         }
 
-        player.on('play', function () {
-            console.log('play event triggered');
-        });
+        if (options.debug === true) {
+            player.on('play', function () {
+                console.log('play event triggered');
+            });
 
-        console.log(`videojsx-vast-plugin running`);
+            console.log(`videojsx-vast-plugin running`);
+        }
 
         const mergeOptionsFunction = parseInt(videojs.VERSION, 10) >= 8 ? videojs.obj.merge : videojs.mergeOptions;
         options = mergeOptionsFunction(DEFAULT_OPTIONS, options || {});
@@ -184,7 +186,7 @@ export class VastPlugin extends Plugin {
                             })
                             .catch((err) => {
                                 // eslint-disable-next-line no-console
-                                console.log(`An error occurred when loading ads for the midroll ad break: : ${err?.message}`);
+                                console.error(`An error occurred when loading ads for the midroll ad break: : ${err?.message}`);
                             })
                             .finally(() => {
                                 lock = false;
@@ -220,7 +222,7 @@ export class VastPlugin extends Plugin {
                 })
                 .catch((err) => {
                     // eslint-disable-next-line no-console
-                    console.log(`An error occurred when loading ads for the postroll ad break: : ${err.message}`);
+                    console.error(`An error occurred when loading ads for the postroll ad break: : ${err.message}`);
                     player.trigger('nopostroll');
                 });
         });
@@ -258,7 +260,7 @@ export class VastPlugin extends Plugin {
             })
             .catch((err) => {
                 // eslint-disable-next-line no-console
-                console.log(`An error occurred when loading ads for the preroll ad break: ${err.message}`);
+                console.error(`An error occurred when loading ads for the preroll ad break: ${err.message}`);
                 player.trigger('nopreroll');
             })
             .finally(() => {
@@ -295,7 +297,9 @@ export class VastPlugin extends Plugin {
             if (nextAd) {
                 currentAd = nextAd;
                 adCount++;
-                console.log(`Playing ad ${adCount}/${adTotal}`);
+                if (options.debug === true) {
+                    console.log(`Playing ad ${adCount}/${adTotal}`);
+                }
 
                 if (currentAd.hasVideoMedia()) {
                     const allMediaFiles = currentAd.linearCreative.mediaFiles;
@@ -309,7 +313,9 @@ export class VastPlugin extends Plugin {
                     } else if (streamingMediaFiles.length > 0) {
                         let assetDuration = currentAd.linearAdTracker.assetDuration;
                         if (assetDuration == null || assetDuration < 1) {
-                            console.log('Streaming ads must have a duration');
+                            if (options.debug === true) {
+                                console.warn('Streaming ads must have a duration');
+                            }
                             playNextAd();
                             return;
                         }
@@ -326,7 +332,7 @@ export class VastPlugin extends Plugin {
                             playNextAd();
                         })
                         .catch((err) => {
-                            console.log(err);
+                            console.warn(err);
                             playNextAd();
                         });
                 }
@@ -479,7 +485,9 @@ export class VastPlugin extends Plugin {
 
         const startAdBreak = () => {
             adTotal = ads.length;
-            console.log(`Playing ${adTotal} ads`);
+            if (options.debug === true) {
+                console.log(`Playing ${adTotal} ads`);
+            }
             player.ads.startLinearAdMode();
             setUpEvents();
             playNextAd();
@@ -508,7 +516,9 @@ export class VastPlugin extends Plugin {
         const endAdBreak = () => {
             player.ads.endLinearAdMode();
             tearDownEvents();
-            console.log('Playing content');
+            if (options.debug === true) {
+                console.log('Playing content');
+            }
         };
     }
 }
