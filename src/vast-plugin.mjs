@@ -238,7 +238,7 @@ export class VastPlugin extends Plugin {
         });
 
         // TODO: calculate reasonable timeout based on contrib-ads settings
-        setTimeout(signalAdsReady, 100);
+        setTimeout(signalAdsReady, 3000);
 
         const adLoader = new AdLoader(vastClient, new VASTParser(), new AdSelector(), options);
         adLoader
