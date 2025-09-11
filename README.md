@@ -126,13 +126,13 @@ Example:
 
 ##### Schedule Item Options
 
-| Name      | Optional | Default | Description                                                    |
-| --------- | -------- | ------- | -------------------------------------------------------------- |
-| `url`     | Yes      | n/a     | Same as the `url` option on the top level                      |
-| `xml`     | Yes      | n/a     | Same as the `xml` option on the top level                      |
-| `offset`  | Yes      | `'pre'` | When to play the ad tag. See possible values below.            |
-| `repeat`  | Yes      | `false` | Whether to re-add this item back to the scheduler.             |
-| `rewrite` | Yes      | n/a     | A function `(string) -> string` that can rewrite the VAST-URL. |
+| Name          | Optional | Default | Description                                                    |
+| ------------- | -------- | ------- | -------------------------------------------------------------- |
+| `url`         | Yes      | n/a     | Same as the `url` option on the top level                      |
+| `xml`         | Yes      | n/a     | Same as the `xml` option on the top level                      |
+| `offset`      | Yes      | `'pre'` | When to play the ad tag. See possible values below.            |
+| `repeatEvery` | Yes      | n/a     | Whether to re-add this item back to the scheduler.             |
+| `rewrite`     | Yes      | n/a     | A function `(string) -> string` that can rewrite the VAST-URL. |
 
 Offset values:
 

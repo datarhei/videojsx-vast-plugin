@@ -34,7 +34,7 @@ const DEFAULT_OPTIONS = Object.freeze({
         maxHeight: 0,
     },
     honorSkipOffset: false,
-    isLiveContent: false,
+    contentIsLive: false,
 });
 
 /**
@@ -56,10 +56,6 @@ export class VastPlugin extends Plugin {
         }
 
         if (options.debug === true) {
-            player.on('play', function () {
-                console.log('play event triggered');
-            });
-
             console.log(`videojsx-vast-plugin running`);
         }
 
@@ -104,6 +100,23 @@ export class VastPlugin extends Plugin {
         const postRollScheduleItem = findFirstPostroll(schedule);
         const midRollScheduleItems = findAllMidrolls(schedule).sort((a, b) => a.offset - b.offset);
 
+        player.on('play', function () {
+            if (options.debug === true) {
+                console.log('play event triggered');
+            }
+
+            const duration = player.duration();
+            if (Number.isFinite(duration) && duration !== 0) {
+                options.contentIsLive = false;
+            } else {
+                options.contentIsLive = true;
+            }
+
+            if (options.debug === true) {
+                console.log('content is live', options.contentIsLive);
+            }
+        });
+
         const autoplay = player.autoplay();
 
         player.on('adtimeout', () => {
@@ -132,10 +145,11 @@ export class VastPlugin extends Plugin {
         const onTimeUpdate = (() => {
             let lock = false;
             let startOffset = -Infinity;
+            let repeatCount = 1;
             return () => {
                 if (lock) return;
 
-                if (options.isLiveContent) {
+                if (options.contentIsLive) {
                     if (!Number.isFinite(startOffset)) {
                         startOffset = this.player.currentTime();
                     }
@@ -149,7 +163,16 @@ export class VastPlugin extends Plugin {
                     if (offsetInSeconds != null) {
                         break;
                     }
-                    const { offset } = midRollScheduleItems[0];
+                    let { offset, repeatEvery } = midRollScheduleItems[0];
+                    if (options.debug === true) {
+                        console.log('offset', offset, 'repeatEvery', repeatEvery, 'repeatCount', repeatCount);
+                    }
+                    if (repeatEvery) {
+                        offset = repeatEvery * repeatCount;
+                        if (!options.contentIsLive) {
+                            repeatCount++;
+                        }
+                    }
                     offsetInSeconds = convertOffsetToSeconds(offset, player.duration());
                     if (offsetInSeconds == null) {
                         midRollScheduleItems.shift();
@@ -167,9 +190,13 @@ export class VastPlugin extends Plugin {
                     if (currentTime > offsetInSeconds) {
                         lock = true;
                         const scheduleItem = midRollScheduleItems.shift();
-                        if (scheduleItem.repeat === true) {
+                        if (scheduleItem.repeatEvery) {
+                            if (options.debug === true) {
+                                console.log('repeating', scheduleItem);
+                            }
                             midRollScheduleItems.push({
                                 ...scheduleItem,
+                                offsetInSeconds: null,
                             });
                         }
                         if (typeof scheduleItem.rewrite === 'function') {
@@ -303,9 +330,7 @@ export class VastPlugin extends Plugin {
 
                 if (currentAd.hasVideoMedia()) {
                     const allMediaFiles = currentAd.linearCreative.mediaFiles;
-
                     const streamingMediaFiles = allMediaFiles.filter((mediaFile) => mediaFile.deliveryType === 'streaming');
-
                     const nonStreamingMediaFiles = allMediaFiles.filter((mediaFile) => mediaFile.deliveryType !== 'streaming');
 
                     if (nonStreamingMediaFiles.length > 0) {
